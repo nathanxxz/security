@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Laboratório de Autenticação - Atividade em Dupla</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; }
+    body { background: #f0f2f5; color: #1c1e21; padding: 24px; }
+    .container { max-width: 800px; margin: 0 auto; }
+    .header { background: #1a365d; color: white; padding: 20px; border-radius: 8px 8px 0 0; }
+    .header h1 { font-size: 22px; margin-bottom: 6px; }
+    .header p { font-size: 14px; opacity: 0.9; }
+    .main { background: white; padding: 24px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+    .panel { background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 16px; margin-bottom: 20px; }
+    .panel h2 { font-size: 16px; color: #2d3748; margin-bottom: 10px; }
+    .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+    .badge-danger { background: #fed7d7; color: #9b2c2c; }
+    .badge-success { background: #c6f6d5; color: #22543d; }
+    .form-group { margin-bottom: 14px; }
+    label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; color: #4a5568; }
+    input[type="text"], input[type="password"] { width: 100%; padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 14px; }
+    .btn { cursor: pointer; padding: 10px 18px; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; transition: background 0.2s; }
+    .btn-primary { background: #3182ce; color: white; }
+    .btn-primary:hover { background: #2b6cb0; }
+    .btn-toggle { background: #4a5568; color: white; font-size: 12px; padding: 6px 12px; }
+    .btn-toggle:hover { background: #2d3748; }
+    .alert { padding: 12px; border-radius: 6px; margin-top: 14px; font-size: 14px; display: none; }
+    .alert-success { background: #c6f6d5; color: #22543d; border: 1px solid #9ae6b4; }
+    .alert-danger { background: #fed7d7; color: #9b2c2c; border: 1px solid #feb2b2; }
+    .alert-warning { background: #feebc8; color: #7b341e; border: 1px solid #fbd38d; }
+    .switch-container { display: flex; gap: 10px; align-items: center; margin-top: 10px; }
+    .docs-box { margin-top: 24px; font-size: 13px; color: #718096; line-height: 1.6; border-top: 1px solid #e2e8f0; padding-top: 16px; }
+    code { background: #edf2f7; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Serviço de Autenticação - Atividade em Dupla</h1>
+      <p>Membro 1: Serviço Web Flask | Membro 2: Script de Força Bruta & Validação Defensiva</p>
+    </div>
+
+    <div class="main">
+      <div class="panel">
+        <h2>Painel de Mecanismos de Defesa (Software)</h2>
+        <p style="font-size: 13px; color: #4a5568; margin-bottom: 12px;">
+          Alterne as proteções abaixo para demonstrar ao vivo como o ataque do Membro 2 é bloqueado:
+        </p>
+        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+          <div>
+            <strong>Rate Limiting (Máx 5 falhas):</strong> 
+            <span id="badgeRateLimit" class="badge badge-danger">Desativado (Vulnerável)</span>
+          </div>
+          <div>
+            <strong>Throttling (Atraso de 1.5s):</strong> 
+            <span id="badgeThrottling" class="badge badge-danger">Desativado</span>
+          </div>
+        </div>
+        <div class="switch-container">
+          <button type="button" class="btn btn-toggle" onclick="toggleDefesa('rate_limit')">Alternar Rate Limiting</button>
+          <button type="button" class="btn btn-toggle" onclick="toggleDefesa('throttling')">Alternar Throttling</button>
+        </div>
+      </div>
+
+      <form id="formLogin" onsubmit="realizarLogin(event)">
+        <div class="form-group">
+          <label for="usuario">Usuário do Sistema</label>
+          <input type="text" id="usuario" name="usuario" value="{{ usuario_padrao }}" required>
+        </div>
+        <div class="form-group">
+          <label for="senha">PIN / Senha</label>
+          <input type="password" id="senha" name="senha" placeholder="Digite o PIN (ex: 583)" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Entrar no Sistema</button>
+      </form>
+
+      <div id="resultadoBox" class="alert"></div>
+
+      <div class="docs-box">
+        <strong>Como a dupla realiza a atividade:</strong>
+        <ol style="margin-left: 20px; margin-top: 6px;">
+          <li><strong>Membro 1</strong> mantém este serviço Flask rodando na porta 5000.</li>
+          <li><strong>Membro 2</strong> executa o script <code>brute_force_local.py</code> na sua máquina ou terminal.</li>
+          <li><strong>Cenário 1:</strong> Com as defesas desativadas, o script descobre o PIN <code>583</code> em segundos.</li>
+          <li><strong>Cenário 2:</strong> Ative o <em>Rate Limiting</em> e o <em>Throttling</em>: o script do Membro 2 receberá <code>HTTP 429 Too Many Requests</code> e o ataque será completamente mitigado!</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let rateLimitAtivo = false;
+    let throttlingAtivo = false;
+
+    async function toggleDefesa(tipo) {
+      if (tipo === 'rate_limit') rateLimitAtivo = !rateLimitAtivo;
+      if (tipo === 'throttling') throttlingAtivo = !throttlingAtivo;
+
+      const resp = await fetch('/api/config-defesa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rate_limit_ativo: rateLimitAtivo,
+          throttling_ativo: throttlingAtivo
+        })
+      });
+      const data = await resp.json();
+      atualizarBadges();
+      alert(`Configurações de Defesa Atualizadas:\nRate Limit: ${rateLimitAtivo ? 'ATIVADO' : 'DESATIVADO'}\nThrottling: ${throttlingAtivo ? 'ATIVADO' : 'DESATIVADO'}`);
+    }
+
+    function atualizarBadges() {
+      const bRate = document.getElementById('badgeRateLimit');
+      bRate.textContent = rateLimitAtivo ? 'ATIVO (Protegido)' : 'Desativado (Vulnerável)';
+      bRate.className = rateLimitAtivo ? 'badge badge-success' : 'badge badge-danger';
+
+      const bThrot = document.getElementById('badgeThrottling');
+      bThrot.textContent = throttlingAtivo ? 'ATIVO (1.5s delay)' : 'Desativado';
+      bThrot.className = throttlingAtivo ? 'badge badge-success' : 'badge badge-danger';
+    }
+
+    async function realizarLogin(e) {
+      e.preventDefault();
+      const usuario = document.getElementById('usuario').value;
+      const senha = document.getElementById('senha').value;
+      const box = document.getElementById('resultadoBox');
+
+      box.style.display = 'block';
+      box.className = 'alert alert-warning';
+      box.textContent = 'Enviando credenciais...';
+
+      try {
+        const resp = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ usuario, senha })
+        });
+        const res = await resp.json();
+
+        if (resp.status === 200) {
+          box.className = 'alert alert-success';
+          box.textContent = '✓ ' + res.mensagem;
+        } else if (resp.status === 429) {
+          box.className = 'alert alert-danger';
+          box.textContent = '⛔ [BLOQUEIO POR RATE LIMIT] ' + res.mensagem;
+        } else {
+          box.className = 'alert alert-danger';
+          box.textContent = '✕ ' + res.mensagem + (res.tentativas_atuais ? ` (Tentativas falhas: ${res.tentativas_atuais}/${res.max_tentativas})` : '');
+        }
+      } catch (err) {
+        box.className = 'alert alert-danger';
+        box.textContent = 'Erro ao conectar ao servidor: ' + err.message;
+      }
+    }
+  </script>
+</body>
+</html>
